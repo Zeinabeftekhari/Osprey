@@ -12,14 +12,19 @@ function [MRSCont] = osp_LoadCombinedCSI(MRSCont)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
-%       Zeinab Eftekhari and Dr. Korbinian Eckstein 
+%       Korbinian Eckstein and Zeinab Eftekhari 
 %       z.eftekhari@uq.edu.au
 %
 %   HISTORY:
 %       2024-06-14: First version of the code.
-% in this script I changed the io_loadspec_txis to io_loadspect_mat and changed the te to 1.3 (mrsi te)
+% in this script I changed the io_loadspec_twix to io_loadspect_mat and changed the te to 1.3 (mrsi te)
 % Close any remaining open figures
 close all;
+
+%loading combinedcsi.mat file, 
+filename_combinedCSI = MRSCont.file{1,1};
+CSI = load(filename_combinedCSI, 'csi');
+
 if MRSCont.flags.hasMM
     if length(MRSCont.files_mm) ~= MRSCont.nDatasets(1)
         msg = 'Number of specified metabolite-nulled files does not match number of specified metabolite files.';
