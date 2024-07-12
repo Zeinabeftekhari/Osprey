@@ -30,11 +30,15 @@ rawAverages = ReadInInfo.Par.nAve; %number of voxel in the region
 subspecs = 1;
 rawSubspecs = 1; 
 seq = 'MRSI_Vienna'; 
-TE = Par.CSI.TEs(1)/1000;  %I am not sure what is the second value, but i knew the TE value for MRSI is 1.3 ms.
+if abs(7-B0) < 0.5  
+   TE = 1.3;
+else
+    TE = 0.8; %3T TR write it here
+end
 if abs(7-B0) < 0.5  
    TR = 460;
 else
-    TR = 0; %3T TR write it here
+    TR = 950; %3T TR write it here
 end
 leftshift = 0; %i am not sure, find it later.
 %these are stored in raw.geometry, I donot know how to store them in raw.geometry
