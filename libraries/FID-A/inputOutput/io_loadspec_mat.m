@@ -1,48 +1,25 @@
-function out=io_loadspec_mat(filename);
-csi = load(filename, 'csi').csi;
-ReadInInfo = load(filename , 'ReadInInfo').ReadInInfo;
-Par = load(filename , 'Par').Par;
+function out = io_loadspec_mat(filename)
+[csi, ReadInInfo, Par] = load_mat(filename);
+
+dims = set_dims();
+
+[txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo);
 
 fids = load_reshape_fids(csi);
-
-dims.t = 1;
-dims.coils = 0; %this can be 0.
-dims.averages = 0; %this can be 0 if crash.
-dims.subSpecs = 0;
-dims.extras = 0;
-
+sz = size(fids);
+t = 0:dwelltime:((sz(1)-1)*dwelltime); % time points for fids
 specs = fftshift(fft(fids,[],dims.t),dims.t);
-sz=size(fids);
+ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq); % ppm points for specs
 
-txfrq = ReadInInfo.Par.LarmorFreq/1e6;
-B0 = txfrq/42.577;
-dwelltime = ReadInInfo.Par.Dwelltime;
-centerFreq = 4.65;
-spectralwidth = 1e9 / dwelltime;
-t=[0:dwelltime:(sz(1)-1)*dwelltime];
-ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq);
-
-averages = ReadInInfo.Par.nAve; %number of voxel in the region
-rawAverages = ReadInInfo.Par.nAve; %number of voxel in the region
+averages = 1; %number of voxel in the region
+rawAverages = 1; %number of voxel in the region
 subspecs = 1;
 rawSubspecs = 1;
 
 seq = 'MRSI_Vienna';
-
 date = '';
 
-if abs(7-B0) < 0.5
-    TE = 1.3;
-else
-    TE = 0.8;
-end
-if abs(7-B0) < 0.5
-    TR = 460;
-else
-    TR = 950;
-end
-
-leftshift = 0; %i am not sure, find it later.
+leftshift = 0;
 
 geometry = load_geometry(ReadInInfo,Par);
 
@@ -66,8 +43,8 @@ out.seq=seq;
 out.te=TE;
 out.tr=TR;
 out.pointsToLeftshift=leftshift;
-out.centerFreq = centerFreq;
-out.geometry = geometry;
+out.centerFreq=centerFreq;
+out.geometry=geometry;
 
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
@@ -90,14 +67,38 @@ else
 end
 end
 
+function [csi,ReadInInfo,Par] = load_mat(filename)
+csi = load(filename, 'csi').csi;
+ReadInInfo = load(filename , 'ReadInInfo').ReadInInfo;
+Par = load(filename , 'Par').Par;
+end
+
+function [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo)
+txfrq = ReadInInfo.Par.LarmorFreq/1e6;
+B0 = txfrq/42.577;
+dwelltime = ReadInInfo.Par.Dwelltime;
+centerFreq = 4.65; % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
+spectralwidth = 1e9 / dwelltime;
+[TE,TR] = get_TE_TR(B0);
+end
+
+function [TE,TR] = get_TE_TR(B0)
+if abs(7-B0) < 0.5
+    TE = 1.3;
+    TR = 460;
+else
+    TE = 0.8;
+    TR = 950;
+end
+end
+
 function ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq)
 frequency_step = spectralwidth / sz(1);
 frequency_start = -spectralwidth / 2 + frequency_step / 2;
 frequency_end = spectralwidth / 2 - frequency_step / 2;
 f = frequency_start:frequency_step:frequency_end;
 ppm = f / txfrq;
-% Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
-ppm=ppm + centerFreq;
+ppm = ppm + centerFreq;
 end
 
 function geometry = load_geometry(ReadInInfo,Par)
@@ -121,4 +122,12 @@ fids = csi(30,30,15,:); %mask information later on will add here,
 reshape_size = size(fids);
 new_size = [reshape_size(4) 1 1];
 fids = reshape(fids, new_size);
+end
+
+function dims = set_dims()
+dims.t = 1;
+dims.coils = 0; %this can be 0.
+dims.averages = 0; %this can be 0 if crash.
+dims.subSpecs = 0;
+dims.extras = 0;
 end
