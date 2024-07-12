@@ -13,9 +13,15 @@ dims.extras = 0;
 
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 sz=size(fids);
+
+txfrq = ReadInInfo.Par.LarmorFreq/1e6;
 B0 = txfrq/42.577;
-ppm = load_ppm(ReadInInfo);
+dwelltime = ReadInInfo.Par.Dwelltime;
+centerFreq = 4.65;
+spectralwidth = 1e9 / dwelltime;
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
+ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq);
+
 averages = ReadInInfo.Par.nAve; %number of voxel in the region
 rawAverages = ReadInInfo.Par.nAve; %number of voxel in the region
 subspecs = 1;
@@ -84,18 +90,13 @@ else
 end
 end
 
-function ppm = load_ppm(ReadInInfo)
-txfrq = ReadInInfo.Par.LarmorFreq/1e6;
-dwelltime = ReadInInfo.Par.Dwelltime;
-B0 = txfrq/42.577;
-spectralwidth = 1e9 / dwelltime;
+function ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq)
 frequency_step = spectralwidth / sz(1);
 frequency_start = -spectralwidth / 2 + frequency_step / 2;
 frequency_end = spectralwidth / 2 - frequency_step / 2;
 f = frequency_start:frequency_step:frequency_end;
 ppm = f / txfrq;
 % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
-centerFreq = 4.65;
 ppm=ppm + centerFreq;
 end
 

@@ -12,7 +12,7 @@ function [MRSCont] = osp_LoadCombinedCSI(MRSCont)
 %       MRSCont     = Osprey MRS data container.
 %
 %   AUTHOR:
-%       Korbinian Eckstein and Zeinab Eftekhari 
+%       Korbinian Eckstein and Zeinab Eftekhari
 %       z.eftekhari@uq.edu.au
 %
 %   HISTORY:
@@ -21,13 +21,13 @@ function [MRSCont] = osp_LoadCombinedCSI(MRSCont)
 % Close any remaining open figures
 close all;
 
-%loading combinedcsi.mat file, 
+%loading combinedcsi.mat file,
 %filename_combinedCSI = MRSCont.file{1,1};
 %CSI = load(filename_combinedCSI, 'csi');
 raw  = io_loadspec_mat(MRSCont.files{1,1});
 %raw  = op_leftshift(raw,raw.pointsToLeftshift); % it changed all ppm
 %values to 4.something
 MRSCont.raw{1,1} = raw;
-MRSCont.flags.coilsCombined     = 1;   
-            % Add NIfTI-MRS information
+MRSCont.flags.coilsCombined     = 1;
+% Add NIfTI-MRS information
 %raw   = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);
