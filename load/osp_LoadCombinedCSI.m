@@ -25,7 +25,9 @@ close all;
 %filename_combinedCSI = MRSCont.file{1,1};
 %CSI = load(filename_combinedCSI, 'csi');
 raw  = io_loadspec_mat(MRSCont.files{1,1});
-raw  = op_leftshift(raw,raw.pointsToLeftshift);
-MRSCont.raw{1,1} = raw;   
+%raw  = op_leftshift(raw,raw.pointsToLeftshift); % it changed all ppm
+%values to 4.something
+MRSCont.raw{1,1} = raw;
+MRSCont.flags.coilsCombined     = 1;   
             % Add NIfTI-MRS information
 %raw   = osp_add_nii_mrs_field(raw,MRSCont.ver.Osp);

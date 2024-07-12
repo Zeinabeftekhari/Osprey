@@ -10,21 +10,24 @@ dims.t = 1;
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 sz=size(fids);
 %calculate ppm, t ,spectralwidth, dwelltime, txfrq, B0
-txfrq = ReadInInfo.Par.LarmorFreq;
-B0 = txfrq/42.577;
+txfrq = ReadInInfo.Par.LarmorFreq/1e6;
 dwelltime = ReadInInfo.Par.Dwelltime;
-spectralwidth=1/dwelltime;
-f=[(-spectralwidth/2)+(spectralwidth/(2*sz(1))):spectralwidth/(sz(1)):(spectralwidth/2)-(spectralwidth/(2*sz(1)))];
-ppm=f/(B0*42.577);
-% Siemens data assumes the center frequency to be 4.7 ppm:
-centerFreq = 4.7;
+B0 = txfrq/42.577;
+spectralwidth = 1e9 / dwelltime;
+frequency_step = spectralwidth / sz(1);
+frequency_start = -spectralwidth / 2 + frequency_step / 2;
+frequency_end = spectralwidth / 2 - frequency_step / 2;
+f = frequency_start:frequency_step:frequency_end;
+ppm = f / txfrq;
+% Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
+centerFreq = 4.65;
 ppm=ppm + centerFreq;
 t=[0:dwelltime:(sz(1)-1)*dwelltime];
 date = '';
-dims.coils = 2; %this can be 0.
-dims.averages = 3; %this can be 0 if crash.
+dims.coils = 0; %this can be 0.
+dims.averages = 0; %this can be 0 if crash.
 dims.subSpecs = 0;
-dims.extra = 0;
+dims.extras = 0;
 averages = ReadInInfo.Par.nAve; %number of voxel in the region 
 rawAverages = ReadInInfo.Par.nAve; %number of voxel in the region 
 subspecs = 1;
@@ -33,12 +36,12 @@ seq = 'MRSI_Vienna';
 if abs(7-B0) < 0.5  
    TE = 1.3;
 else
-    TE = 0.8; %3T TR write it here
+    TE = 0.8; 
 end
 if abs(7-B0) < 0.5  
    TR = 460;
 else
-    TR = 950; %3T TR write it here
+    TR = 950; 
 end
 leftshift = 0; %i am not sure, find it later.
 %these are stored in raw.geometry, I donot know how to store them in raw.geometry
