@@ -1,18 +1,19 @@
 function out = io_loadspec_mat(filename)
 [csi, ReadInInfo, Par] = load_mat(filename);
+mask = load_mask(filename);
+
 
 dims = set_dims();
 
 [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo);
 
-fids = load_reshape_fids(csi);
+[fids, number_selected_voxels] = load_reshape_fids(csi, mask);
 sz = size(fids);
 t = 0:dwelltime:((sz(1)-1)*dwelltime); % time points for fids
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq); % ppm points for specs
-
-averages = 1; %number of voxel in the region
-rawAverages = 1; %number of voxel in the region
+averages = number_selected_voxels; %number of voxel in the region
+rawAverages = number_selected_voxels; %number of voxel in the region
 subspecs = 1;
 rawSubspecs = 1;
 
@@ -117,17 +118,28 @@ geometry.rot.NormSag        = ReadInInfo.Par.SliceNormalVector_y; % Sagittal com
 geometry.rot.NormTra        = ReadInInfo.Par.SliceNormalVector_z; % Transversal component of normal vector of voxel.
 end
 
-function fids = load_reshape_fids(csi)
-fids = csi(30,30,15,:); %mask information later on will add here,
-reshape_size = size(fids);
-new_size = [reshape_size(4) 1 1];
-fids = reshape(fids, new_size);
+function [fids, number_selected_voxels] = load_reshape_fids(csi, mask)
+mask = logical(mask);
+number_selected_voxels = sum(mask,'all');
+number_timepoints = size(csi,4);
+mask_4D = repmat(mask,1,1,1,number_timepoints);
+selected_voxels = csi(mask_4D);
+reshaped_voxels = reshape(selected_voxels,number_selected_voxels,number_timepoints);
+fids = transpose(reshaped_voxels);
 end
 
 function dims = set_dims()
 dims.t = 1;
 dims.coils = 0; %this can be 0.
-dims.averages = 0; %this can be 0 if crash.
+dims.averages = 2; %this can be 0 if crash.
 dims.subSpecs = 0;
 dims.extras = 0;
+end
+
+function mask = load_mask(CSI_filename)
+dirname = fileparts(CSI_filename);
+new_mask_name = 'SVS_mask.nii.gz';
+mask_filename = fullfile(dirname, new_mask_name);
+nii = nii_tool('load', mask_filename);
+mask = nii.img;
 end
