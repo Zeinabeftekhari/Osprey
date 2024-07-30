@@ -47,6 +47,14 @@ out.pointsToLeftshift=leftshift;
 out.centerFreq=centerFreq;
 out.geometry=geometry;
 
+% Sequence flags
+out.flags.isUnEdited = 1;
+out.flags.isMEGA = 0;
+out.flags.isHERMES = 0;
+out.flags.isHERCULES = 0;
+out.flags.isPRIAM = 0;
+out.flags.isMRSI = 0;
+
 %FILLING IN THE FLAGS
 out.flags.writtentostruct=1;
 out.flags.gotparams=1;
@@ -56,7 +64,7 @@ out.flags.zeropadded=0;
 out.flags.freqcorrected=0;
 out.flags.phasecorrected=0;
 out.flags.averaged=0;
-out.flags.addedrcvrs=0;
+out.flags.addedrcvrs=1;
 out.flags.subtracted=0;
 out.flags.writtentotext=0;
 out.flags.downsampled=0;
@@ -126,6 +134,7 @@ mask_4D = repmat(mask,1,1,1,number_timepoints);
 selected_voxels = csi(mask_4D);
 reshaped_voxels = reshape(selected_voxels,number_selected_voxels,number_timepoints);
 fids = transpose(reshaped_voxels);
+fids = double(fids);
 end
 
 function dims = set_dims()
