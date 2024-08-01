@@ -135,6 +135,7 @@ selected_voxels = csi(mask_4D);
 reshaped_voxels = reshape(selected_voxels,number_selected_voxels,number_timepoints);
 fids = transpose(reshaped_voxels);
 fids = double(fids);
+fids = flip(fids,1);
 end
 
 function dims = set_dims()
