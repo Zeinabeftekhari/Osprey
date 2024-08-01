@@ -87,7 +87,7 @@ txfrq = ReadInInfo.Par.LarmorFreq/1e6;
 B0 = txfrq/42.577;
 dwelltime = ReadInInfo.Par.Dwelltime;
 centerFreq = 4.65; % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
-spectralwidth = 1e9 / dwelltime;
+spectralwidth = (1e9 / dwelltime)/2;
 [TE,TR] = get_TE_TR(B0);
 end
 
