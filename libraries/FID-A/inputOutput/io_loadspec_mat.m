@@ -128,6 +128,8 @@ end
 
 function [fids, number_selected_voxels] = load_reshape_fids(csi, mask)
 mask = logical(mask);
+mask(:,:,:) = 0;  
+mask(33:34,25:26,12:13) = 1;
 number_selected_voxels = sum(mask,'all');
 number_timepoints = size(csi,4);
 mask_4D = repmat(mask,1,1,1,number_timepoints);
@@ -135,7 +137,8 @@ selected_voxels = csi(mask_4D);
 reshaped_voxels = reshape(selected_voxels,number_selected_voxels,number_timepoints);
 fids = transpose(reshaped_voxels);
 fids = double(fids);
-fids = flip(fids,1);
+fids = fids ./ fids(3,:) .* abs(fids(3,:)); %this is the phase correction, using third point in fids. 
+fids = flip(fids,1); %why does it need to be flip? check later
 end
 
 function dims = set_dims()
