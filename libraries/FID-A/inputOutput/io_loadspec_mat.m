@@ -8,6 +8,7 @@ dims = set_dims();
 [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo);
 
 [fids, number_selected_voxels] = load_reshape_fids(csi, mask);
+[fids] = linear_baseline_fitting(fids,dims);
 sz = size(fids);
 t = 0:dwelltime:((sz(1)-1)*dwelltime); % time points for fids
 specs = fftshift(fft(fids,[],dims.t),dims.t);
@@ -128,8 +129,8 @@ end
 
 function [fids, number_selected_voxels] = load_reshape_fids(csi, mask)
 mask = logical(mask);
-mask(:,:,:) = 0;  
-mask(33:34,25:26,12:13) = 1;
+%mask(:,:,:) = 0;  
+%mask(33:34,25:26,12:13) = 1;
 number_selected_voxels = sum(mask,'all');
 number_timepoints = size(csi,4);
 mask_4D = repmat(mask,1,1,1,number_timepoints);
@@ -139,6 +140,18 @@ fids = transpose(reshaped_voxels);
 fids = double(fids);
 fids = fids ./ fids(3,:) .* abs(fids(3,:)); %this is the phase correction, using third point in fids. 
 fids = flip(fids,1); %why does it need to be flip? check later
+end
+
+function [fids] = linear_baseline_fitting(fids,dims)
+specs = fftshift(fft(fids,[],dims.t),dims.t);
+startmean = mean(specs(1:100,:)); 
+endmean = mean(specs(end-99:end,:));
+baseline = zeros(size(specs));
+for voxel = 1:size(specs,dims.averages)
+   baseline(:,voxel) = linspace(startmean(:,voxel),endmean(:,voxel),size(specs,dims.t));
+end
+specs = specs-baseline;
+fids = ifft(fftshift(specs,dims.t),[],dims.t);
 end
 
 function dims = set_dims()
