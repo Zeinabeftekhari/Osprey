@@ -1,11 +1,11 @@
 function out = io_loadspec_mat(filename)
-[csi, ReadInInfo, Par] = load_mat(filename);
+[csi, Par] = load_mat(filename);
 mask = load_mask(filename);
 
 
 dims = set_dims();
 
-[txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo);
+[txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(Par);
 
 [fids, number_selected_voxels] = load_reshape_fids(csi, mask);
 [fids] = linear_baseline_fitting(fids,dims);
@@ -23,7 +23,7 @@ date = '';
 
 leftshift = 0;
 
-geometry = load_geometry(ReadInInfo,Par);
+geometry = load_geometry(Par);
 
 %FILLING IN DATA STRUCTURE
 out.fids=fids;
@@ -77,16 +77,16 @@ else
 end
 end
 
-function [csi,ReadInInfo,Par] = load_mat(filename)
-csi = load(filename, 'csi').csi;
-ReadInInfo = load(filename , 'ReadInInfo').ReadInInfo;
-Par = load(filename , 'Par').Par;
+function [csi,Par] = load_mat(filename)
+csi_struct = load(filename, 'csi').csi;
+csi = csi_struct.Data;
+Par = csi_struct.Par;
 end
 
-function [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo)
-txfrq = ReadInInfo.Par.LarmorFreq/1e6;
+function [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(Par)
+txfrq = Par.LarmorFreq/1e6;
 B0 = txfrq/42.577;
-dwelltime = ReadInInfo.Par.Dwelltime;
+dwelltime = Par.Dwelltimes;
 centerFreq = 4.65; % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
 spectralwidth = (1e9 / dwelltime)/2;
 [TE,TR] = get_TE_TR(B0);
@@ -111,20 +111,20 @@ ppm = f / txfrq;
 ppm = ppm + centerFreq;
 end
 
-function geometry = load_geometry(ReadInInfo,Par)
-geometry.size.VoI_RoFOV     = ReadInInfo.Par.ReadVOI; % Voxel size in readout direction [mm]
-geometry.size.VoI_PeFOV     = ReadInInfo.Par.PhaseVOI; % Voxel size in phase encoding direction [mm]
-geometry.size.VoIThickness  = ReadInInfo.Par.SliceVOI; % Voxel size in slice selection direction [mm]
-geometry.pos.PosCor         = Par.CSI.PosVOI_Cor; % Coronal coordinate of voxel [mm]
-geometry.pos.PosSag         = Par.CSI.PosVOI_Sag; % Sagittal coordinate of voxel [mm]
-geometry.pos.PosTra         = Par.CSI.PosVOI_Tra; % Transversal coordinate of voxel [mm]
+function geometry = load_geometry(Par)
+geometry.size.VoI_RoFOV     = Par.VoI_Read; % Voxel size in readout direction [mm]
+geometry.size.VoI_PeFOV     = Par.VoI_Phase; % Voxel size in phase encoding direction [mm]
+geometry.size.VoIThickness  = Par.VoI_Partition; % Voxel size in slice selection direction [mm]
+geometry.pos.PosCor         = Par.PosVOI_Cor; % Coronal coordinate of voxel [mm]
+geometry.pos.PosSag         = Par.PosVOI_Sag; % Sagittal coordinate of voxel [mm]
+geometry.pos.PosTra         = Par.PosVOI_Tra; % Transversal coordinate of voxel [mm]
 geometry.pos.TablePosSag    = 0; % Sagittal table position [mm].
 geometry.pos.TablePosCor    = 0; % Coronal table position [mm].
 geometry.pos.TablePosTra    = 0; % Transversal table position [mm].
-geometry.rot.VoI_InPlaneRot = ReadInInfo.Par.InPlaneRotation; % Voxel rotation in plane
-geometry.rot.NormCor        = ReadInInfo.Par.SliceNormalVector_x; % Coronal component of normal vector of voxel.
-geometry.rot.NormSag        = ReadInInfo.Par.SliceNormalVector_y; % Sagittal component of normal vector of voxel.
-geometry.rot.NormTra        = ReadInInfo.Par.SliceNormalVector_z; % Transversal component of normal vector of voxel.
+geometry.rot.VoI_InPlaneRot = Par.InPlaneRotation; % Voxel rotation in plane
+geometry.rot.NormCor        = Par.SliceNormalVector_x; % Coronal component of normal vector of voxel.
+geometry.rot.NormSag        = Par.SliceNormalVector_y; % Sagittal component of normal vector of voxel.
+geometry.rot.NormTra        = Par.SliceNormalVector_z; % Transversal component of normal vector of voxel.
 end
 
 function [fids, number_selected_voxels] = load_reshape_fids(csi, mask)
