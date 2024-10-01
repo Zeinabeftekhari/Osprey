@@ -178,9 +178,6 @@ for kk = 1:length(files)
         elseif strcmpi(ext,'.DATA')
             buffer.vendor{kk}       = 'Philips';
             buffer.datatype{kk}     = 'DATA';
-        elseif strcmpi(ext,'.mat') && contains(name, 'CombinedCSI')
-            buffer.vendor{kk}       = 'MRSI_Vienna';
-            buffer.datatype{kk}     = 'mat';            
         elseif strcmpi(ext,'.gz') || strcmpi(ext,'.nii')
             % For now, leave the vendor field empty; we'll fill it while
             % loading the actual data.
