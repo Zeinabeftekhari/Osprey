@@ -1,4 +1,4 @@
-function Write_LCM_files(InArray,Paths,MetaInfo,ControlInfo,mask,CPU_cores)
+function voxel_control_out = Write_LCM_files(InArray,Paths,MetaInfo,ControlInfo,mask,CPU_cores)
 %
 % Write_LCM_files Write the files necessary for LCModel fittting.
 %
@@ -128,7 +128,8 @@ if(~isfield(MetaInfo,'DimNames'))
     MetaInfo.DimNames = {'x','y','z'};
 end
 if(~exist('mask','var') || numel(mask) <= 1)
-    mask = ones(size(squeeze_single_dim(InArray,MetaInfo.Dimt1)));
+    %mask = ones(size(squeeze_single_dim(InArray,MetaInfo.Dimt1)));
+    mask = ones(size(InArray));
 end
 if(exist('ControlInfo','var') && isnumeric(ControlInfo))
 	clear ControlInfo;				% Easier to handle this way
@@ -643,21 +644,6 @@ for VarInd1 = 1:size(InArray,ArrayDimIndices(1))
     end              % VarInd2
 end                  % VarInd1
 
-
-% performs LCM in parallel
-if ~exist('CPU_cores','var') || CPU_cores < 1
-    CPU_cores_string = ''; % If not specified GNU parallel uses all available cores
-else
-    CPU_cores_string = sprintf('-j %d', CPU_cores);
-end
-if ~exist('Progressbar','var') || progressbar == 0
-    progress_string = '';
-else
-    progress_string = '--progress --eta';
-end
-fid = fopen(sprintf('%s/lcm_process_core_parallel.sh',Paths.batchdir),'a');
-fprintf(fid, sprintf('ls %s | grep \\\\.control | parallel %s %s "%s < %s/{} > /dev/null"\n', Paths.out_dir, progress_string, CPU_cores_string, Paths.LCM_ProgramPath, Paths.out_dir));
-fclose(fid);
 
 fclose('all');
 end
