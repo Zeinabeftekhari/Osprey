@@ -1,8 +1,8 @@
-filename = 'D:\Osprey_new\mrsi_data\CombinedCSI.mat'; %set to your combined.mat path
-out_dir = 'D:\Osprey_new\mrsi_data\output'; %set your output path
-basis_path = 'D:\Osprey_new\mrsi_data\fid_1.300000ms.basis'; %it is for 7T
-LCM_ProgramPath = 'D:\Ospery\osprey-develop\libraries\LCModel\win\win10\LCModel_win_win10\LCModel.exe';
-LCM_ControlFile = 'D:\Osprey_new\mrsi_data\LCModel_Control_Template.m';
+filename = '/Users/uqzeftek/Data/CombinedCSI.mat'; %set to your combined.mat path
+out_dir = '/Users/uqzeftek/Data/output'; %set your output path
+basis_path = '/Users/uqzeftek/Data/fid_1.300000ms.basis'; %it is for 7T
+LCM_ProgramPath = '/Users/uqzeftek/Github/LCModel/source/lcmodel';
+LCM_ControlFile = '/Users/uqzeftek/Data/LCModel_Control_Template.m';
 
 %% Load Data, apply mask, phase correct, remove baseline
 out = io_loadspec_mat(filename);

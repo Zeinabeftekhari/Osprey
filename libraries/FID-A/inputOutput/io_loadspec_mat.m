@@ -8,7 +8,7 @@ dims = set_dims();
 [txfrq, B0, dwelltime, spectralwidth, centerFreq, TE, TR] = load_parameters(ReadInInfo);
 
 [fids, number_selected_voxels] = load_reshape_fids(csi, mask);
-[fids] = linear_baseline_fitting(fids,dims);
+%[fids] = linear_baseline_fitting(fids,dims);
 sz = size(fids);
 t = 0:dwelltime:((sz(1)-1)*dwelltime); % time points for fids
 specs = fftshift(fft(fids,[],dims.t),dims.t);
@@ -139,7 +139,7 @@ reshaped_voxels = reshape(selected_voxels,number_selected_voxels,number_timepoin
 fids = transpose(reshaped_voxels);
 fids = double(fids);
 fids = fids ./ fids(3,:) .* abs(fids(3,:)); %this is the phase correction, using third point in fids. 
-fids = flip(fids,1); %why does it need to be flip? check later
+%fids = flip(fids,1); %it might need to be flip for Osprey.
 end
 
 function [fids] = linear_baseline_fitting(fids,dims)
