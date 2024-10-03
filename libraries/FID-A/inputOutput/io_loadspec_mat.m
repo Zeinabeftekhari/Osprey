@@ -1,6 +1,8 @@
-function out = io_loadspec_mat(filename)
+function out = io_loadspec_mat(filename, SVS_mask)
 [csi, ReadInInfo, Par] = load_mat(filename);
-mask = load_mask(filename);
+%mask = load_mask(filename); %reading SVS mask for Osprey
+nii = nii_tool('load', SVS_mask);
+mask = nii.img;
 
 
 dims = set_dims();
@@ -88,7 +90,11 @@ txfrq = ReadInInfo.Par.LarmorFreq/1e6;
 B0 = txfrq/42.577;
 dwelltime = ReadInInfo.Par.Dwelltime;
 centerFreq = 4.65; % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
-spectralwidth = (1e9 / dwelltime)/2;
+if abs(7-B0) < 0.5
+    spectralwidth = (1e9 / dwelltime)/2;
+else
+    spectralwidth = (1e9 / dwelltime);
+end
 [TE,TR] = get_TE_TR(B0);
 end
 
