@@ -5,7 +5,9 @@ function fids = frequency_correction(fids, B0_map, mask, params) %Frequency corr
     B0_map = -B0_map / ppm_conversion;
     B0_map = round(B0_map);
     specs = fftshift(fft(fids, [], 1), 1);
-    specs = circshift(specs, B0_map);
+    for i = 1:size(specs, 2)
+        specs(:,i) = circshift(specs(:,i), B0_map(i));
+    end
     fids = ifft(fftshift(specs, 1), [], 1);
     %t = t/10^9;
     %t = transpose(t);
