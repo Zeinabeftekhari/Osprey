@@ -6,6 +6,7 @@ for subject = ["sub-002","sub-006","sub-007","sub-008","sub-009"]
             for field = ["3T","7T"]
                 MRSI_filename = strcat (main_path,'Data-3t-7t/',field,'/',subject,'/ProcessedData/MRSI_',session,'/CombinedCSI.mat') %set to your combined.mat path
                 SVS_mask = strcat (main_path, 'Data-3t-7t/analysis/MRSI/SVS_MRSI/SVS_MRSI/output/',subject,'-',session,'_',field,'/mri/',subject,'_',session,'_',location,'_mask_',field,'_register.nii.gz') %set to your mask path
+                B0_map =  strcat (main_path,'Data-3t-7t/',field,'/',subject,'/ProcessedData/MRSI_',session,'/maps/Extra/shift_map.nii')
                 out_dir = strcat (main_path, 'Data-3t-7t/analysis/MRSI/SVS_MRSI/MRSI_averaged') %set your output path
 
                 if  strcmp('3T',field)
@@ -19,7 +20,7 @@ for subject = ["sub-002","sub-006","sub-007","sub-008","sub-009"]
                 LCM_ProgramPath = '/Users/uqzeftek/Github/LCModel/source/lcmodel';
                     
                 %% Load Data, apply mask, phase correct, remove baseline
-                out = io_loadspec_mat(MRSI_filename, SVS_mask);
+                out = io_loadspec_mat(MRSI_filename, SVS_mask, B0_map);
                 
                 %% Voxel averaging
                 Data.csi = mean(out.fids, 2);

@@ -1,9 +1,11 @@
-function out = io_loadspec_mat(filename, SVS_mask)
+function out = io_loadspec_mat(filename, SVS_mask_filename , B0_map_filename)
 [csi, ReadInInfo, Par] = load_mat(filename);
 %mask = load_mask(filename); %reading SVS mask for Osprey
-nii = nii_tool('load', SVS_mask);
+nii = nii_tool('load', SVS_mask_filename);
 mask = nii.img;
-
+mask = logical(mask);
+B0_map = nii_tool('load', B0_map_filename);
+B0_map = B0_map.img;
 
 dims = set_dims();
 
@@ -13,6 +15,7 @@ dims = set_dims();
 %[fids] = linear_baseline_fitting(fids,dims);
 sz = size(fids);
 t = 0:dwelltime:((sz(1)-1)*dwelltime); % time points for fids
+fids = frequency_correction(fids, B0_map , dims, mask, spectralwidth, txfrq);
 specs = fftshift(fft(fids,[],dims.t),dims.t);
 ppm = calculate_ppm(txfrq,sz,spectralwidth,centerFreq); % ppm points for specs
 averages = number_selected_voxels; %number of voxel in the region
@@ -134,7 +137,6 @@ geometry.rot.NormTra        = ReadInInfo.Par.SliceNormalVector_z; % Transversal 
 end
 
 function [fids, number_selected_voxels] = load_reshape_fids(csi, mask)
-mask = logical(mask);
 %mask(:,:,:) = 0;  
 %mask(33:34,25:26,12:13) = 1;
 number_selected_voxels = sum(mask,'all');
@@ -174,4 +176,19 @@ new_mask_name = 'SVS_mask.nii.gz';
 mask_filename = fullfile(dirname, new_mask_name);
 nii = nii_tool('load', mask_filename);
 mask = nii.img;
+end
+
+function fids = frequency_correction(fids, B0_map , dims, mask, spectralwidth, txfrq) %Frequency correction for each voxel before averaging
+ppm_conversion = spectralwidth / size(fids,1)/ txfrq;
+B0_map(isnan(B0_map)) = 0;  % Remove NaN's
+B0_map = reshape(B0_map(mask),1,size(fids,2)); %match B0 map to our mask in terms of size and location, we donot want B0 for whole brain. 
+B0_map = -B0_map / ppm_conversion;
+B0_map = round(B0_map);
+specs = fftshift(fft(fids,[],dims.t),dims.t);
+specs = circshift(specs,B0_map);
+fids = ifft(fftshift(specs,dims.t),[],dims.t);
+%t = t/10^9;
+%t = transpose(t);
+%B0CorrMat_Spec = exp(2*pi*1i*B0_map) .* t;
+%fids = fids .* B0CorrMat_Spec;
 end
