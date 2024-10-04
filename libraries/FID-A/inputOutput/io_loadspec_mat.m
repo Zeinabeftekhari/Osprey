@@ -11,7 +11,8 @@ function out = io_loadspec_mat(filename, SVS_mask_filename, B0_map_filename)
 
     %% Corrections
     %[fids] = linear_baseline_fitting(fids,dims);
-    fids = frequency_correction(fids, B0_map, mask, params);
+    frequency_correction_on_fids = true;
+    fids = frequency_correction(fids, B0_map, mask, params, frequency_correction_on_fids); %Frequency correction for each voxel before averaging
 
     %% Calculate spectrum from fids
     specs = fftshift(fft(fids, [], params.dims.t), params.dims.t);
@@ -61,7 +62,7 @@ function ppm = calculate_ppm(txfrq, n_fid_points, spectralwidth, centerFreq)
     frequency_end = spectralwidth / 2 - frequency_step / 2;
     f = frequency_start:frequency_step:frequency_end;
     ppm = f / txfrq;
-    ppm = ppm + centerFreq;    
+    ppm = ppm + centerFreq;
     ppm = flip(ppm);
 end
 
@@ -70,6 +71,7 @@ function params = load_parameters(ReadInInfo, Par, fids)
     n_selected_voxels = size(fids, 2);
     params.txfrq = ReadInInfo.Par.LarmorFreq / 1e6;
     params.Bo = params.txfrq / 42.577;
+
     if abs(7 - params.Bo) < 0.5
         params.dwelltime = 2 * ReadInInfo.Par.Dwelltime;
         params.TE = 1.3;
@@ -79,6 +81,7 @@ function params = load_parameters(ReadInInfo, Par, fids)
         params.TE = 0.8;
         params.TR = 950;
     end
+
     params.centerFreq = 4.65; % Siemens data assumes the center frequency to be 4.7 ppm: % 4.65 from Vienna script
     params.spectralwidth = (1e9 / params.dwelltime);
     params.geometry = load_geometry(ReadInInfo, Par);
